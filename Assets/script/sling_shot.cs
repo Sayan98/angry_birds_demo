@@ -4,17 +4,21 @@ using UnityEngine;
 
 public class sling_shot : MonoBehaviour
 {
-    Rigidbody2D sling_point_rb;
-    Rigidbody2D rigidbody;
+    [SerializeField]
+    LineRenderer lr_left, lr_right;
+
+    Rigidbody2D rigidbody, sling_point_rb;
     SpringJoint2D springJoint;
 
     bool dragable;
 
+
     void Awake() {
 
         dragable = false;
-    
+
     }
+
 
     void Start() {
 
@@ -25,24 +29,24 @@ public class sling_shot : MonoBehaviour
         springJoint.connectedBody = sling_point_rb;
 
         rigidbody.isKinematic = true;
-        rigidbody.constraints = RigidbodyConstraints2D.FreezeRotation;
+        //rigidbody.constraints = RigidbodyConstraints2D.FreezeRotation;
 
+        sling_band_func( new Vector2(rigidbody.position.x - 0.30f, rigidbody.position.y - 0.30f) );
     }
+
 
     IEnumerator getmouse_pos() {
 
         if(dragable) {
             
             Vector2 mouse_pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            
-            /*mouse_pos.x = Mathf.Clamp(mouse_pos.x, -14, -8);
-            mouse_pos.y = Mathf.Clamp(mouse_pos.y, -2.3f, 3);*/
 
-
-            if(Vector2.Distance(mouse_pos, sling_point_rb.position) > 3.5f)
-                rigidbody.position = sling_point_rb.position + ((mouse_pos - sling_point_rb.position).normalized) * 3.5f;
+            if(Vector2.Distance(mouse_pos, sling_point_rb.position) > 3f)
+                rigidbody.position = sling_point_rb.position + ((mouse_pos - sling_point_rb.position).normalized) * 3f;
             else
                 rigidbody.position = mouse_pos;
+
+            sling_band_func( new Vector2(rigidbody.position.x - 0.30f, rigidbody.position.y - 0.30f) );
 
             yield return new WaitForFixedUpdate();
             StartCoroutine(getmouse_pos());
@@ -53,6 +57,7 @@ public class sling_shot : MonoBehaviour
 
     }
 
+
     void OnMouseDown() {
 
         dragable = true;
@@ -62,6 +67,22 @@ public class sling_shot : MonoBehaviour
 
     }
 
+
+    private void sling_band_func(Vector2 target) {
+
+        Vector3[] pos = new Vector3[2];
+        
+        pos[1] = target;
+        
+        pos[0] = lr_left.transform.position;
+        lr_left.SetPositions(pos);
+
+        pos[0] = lr_right.transform.position;
+        lr_right.SetPositions(pos); 
+
+    }
+
+
     void OnMouseUp() {
         
         dragable = false;
@@ -70,17 +91,26 @@ public class sling_shot : MonoBehaviour
 
     }
 
+
     IEnumerator shoot_player() {
 
-        if(Vector2.Distance(rigidbody.position, sling_point_rb.position) < 0.5f) {
+        ///backup
+        /*sling_band_func(sling_point_rb);
+        yield return new WaitForSeconds(0.2f);
+        springJoint.enabled = false;*/
+
+
+        if(Vector2.Distance(rigidbody.position, sling_point_rb.position) < 0.7f) {
 
             springJoint.enabled = false;
+            sling_band_func(sling_point_rb.position);
             yield return new WaitForEndOfFrame();
 
         }
         else {
 
             yield return new WaitForEndOfFrame();
+            sling_band_func( new Vector2(rigidbody.position.x - 0.30f, rigidbody.position.y - 0.30f) );
             StartCoroutine(shoot_player());
         
         }
@@ -89,3 +119,4 @@ public class sling_shot : MonoBehaviour
     
     
 }
+//// line ren sorting order
